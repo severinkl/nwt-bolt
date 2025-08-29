@@ -17,12 +17,13 @@ class TxtScenario:
         self.txt_file_path = txt_file_path
         self.steps: Dict[int, List[ScenarioStep]] = {}
         self.maximum_steps = 0
-        self.name = os.path.basename(txt_file_path).replace('.txt', '').replace('_', ' ').title()
-        self.description = f"Scenario loaded from {txt_file_path}"
+        
+        # Extract name from filename
+        filename = os.path.basename(txt_file_path)
+        self.name = filename.replace('.txt', '').replace('_', ' ').title()
+        self.description = f"Scenario loaded from {filename}"
         
         self._parse_txt_file()
-        # Add 1 to maximum_steps to account for 0-based indexing but 1-based display
-        self.maximum_steps += 1
 
     def _parse_txt_file(self):
         """Parse the txt file and create scenario steps"""
@@ -35,29 +36,43 @@ class TxtScenario:
 
         for line_num, line in enumerate(lines, 1):
             line = line.strip()
-            if not line or line.startswith('#'):  # Skip empty lines and comments
+            
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
                 continue
 
             try:
-                parts = line.split(';')
+                # Split by semicolon and handle empty fields
+                parts = [part.strip() for part in line.split(';')]
+                
+                # Ensure we have at least step and device
                 if len(parts) < 2:
                     print(f"Warning: Invalid line {line_num} in {self.txt_file_path}: {line}")
                     continue
 
-                # Parse components
-                step = int(parts[0]) if parts[0].strip() else 0
-                device = parts[1].strip() if len(parts) > 1 else ""
-                image = parts[2].strip() if len(parts) > 2 and parts[2].strip() else None
-                wled = parts[3].strip() if len(parts) > 3 and parts[3].strip() else None
-                time_sec = float(parts[4]) if len(parts) > 4 and parts[4].strip() else 5.0
-                desc = parts[5].strip() if len(parts) > 5 and parts[5].strip() else None
+                # Parse required fields
+                step = int(parts[0]) if parts[0] else 0
+                device = parts[1] if parts[1] else ""
+                
+                if not device:
+                    print(f"Warning: Missing device on line {line_num}: {line}")
+                    continue
 
-                # Handle special values
-                if image == "null":
-                    image = None
-                if wled == "null":
-                    wled = None
+                # Parse optional fields with defaults
+                image = parts[2] if len(parts) > 2 and parts[2] and parts[2].lower() != 'null' else None
+                wled = parts[3] if len(parts) > 3 and parts[3] and parts[3].lower() != 'null' else None
+                
+                # Handle time_sec with default
+                time_sec = 5.0
+                if len(parts) > 4 and parts[4]:
+                    try:
+                        time_sec = float(parts[4])
+                    except ValueError:
+                        print(f"Warning: Invalid time_sec on line {line_num}, using default 5.0")
+                
+                desc = parts[5] if len(parts) > 5 and parts[5] else None
 
+                # Create scenario step
                 scenario_step = ScenarioStep(step, device, image, wled, time_sec, desc)
 
                 # Group steps by step number
@@ -71,16 +86,22 @@ class TxtScenario:
             except (ValueError, IndexError) as e:
                 print(f"Error parsing line {line_num} in {self.txt_file_path}: {line} - {e}")
 
-    def execute_step(self, step: int) -> Optional[str]:
-        """Execute step based on role and return image path"""
+        # Ensure we have at least one step
+        if self.maximum_steps == 0:
+            self.maximum_steps = 1
+
+    def execute_step(self, step: int) -> Optional[Dict]:
+        """Execute step based on role and return display content"""
+        # Handle step 0 or steps not in our scenario
         if step not in self.steps:
-            return {"type": "image", "content": self._get_default_image()}
+            return self._get_default_display()
 
         # Find steps for this device/role
-        device_steps = [s for s in self.steps[step] if s.device.lower() == self.role.lower()]
+        device_steps = [s for s in self.steps[step] 
+                       if s.device.lower() == self.role.lower() or s.device.lower() == 'all']
         
         if not device_steps:
-            return {"type": "image", "content": self._get_default_image()}
+            return self._get_default_display()
 
         # Use the first matching step for this device
         scenario_step = device_steps[0]
@@ -89,17 +110,26 @@ class TxtScenario:
         if scenario_step.wled:
             self._handle_wled_command(scenario_step.wled)
 
-        # Determine what to return based on image and description
+        # Determine what to return based on content
+        return self._create_display_content(scenario_step)
+
+    def _create_display_content(self, scenario_step: ScenarioStep) -> Dict:
+        """Create appropriate display content based on scenario step"""
         has_image = scenario_step.image and scenario_step.image.upper() != "TEXT"
         has_description = scenario_step.desc and scenario_step.desc.strip()
         
-        if scenario_step.image:
-            # Check if it's a text display request
-            if scenario_step.image.upper() == "TEXT":
-                return {"type": "text", "content": scenario_step.desc or "No description available"}
-            
-            # Has image - check if we also have description
+        # Handle special text-only display
+        if scenario_step.image and scenario_step.image.upper() == "TEXT":
+            return {
+                "type": "text", 
+                "content": scenario_step.desc or "No description available"
+            }
+        
+        # Handle image with optional description
+        if has_image:
             image_path = scenario_step.image
+            
+            # Ensure proper image path
             if not image_path.startswith('images/'):
                 image_path = f"images/{image_path}"
                 
@@ -110,12 +140,20 @@ class TxtScenario:
                     "text": scenario_step.desc
                 }
             else:
-                return {"type": "image", "content": image_path}
-        elif has_description:
-            # Only description, no image
-            return {"type": "text", "content": scenario_step.desc}
+                return {
+                    "type": "image", 
+                    "content": image_path
+                }
         
-        return {"type": "image", "content": self._get_default_image()}
+        # Handle description-only display
+        elif has_description:
+            return {
+                "type": "text", 
+                "content": scenario_step.desc
+            }
+        
+        # Fallback to default display
+        return self._get_default_display()
 
     def _handle_wled_command(self, wled_command: str):
         """Handle WLED commands like 'client>switch' or 'switch>client'"""
@@ -124,20 +162,16 @@ class TxtScenario:
             
             # Parse direction from command
             if '>' in wled_command:
-                source, target = wled_command.split('>')
+                source, target = wled_command.split('>', 1)
                 source = source.strip().lower()
                 target = target.strip().lower()
                 
-                # Determine if this is reverse direction
-                reverse = False
-                if source == self.role.lower():
-                    # This device is sending, so forward direction
-                    reverse = False
-                elif target == self.role.lower():
-                    # This device is receiving, so reverse direction  
-                    reverse = True
-                else:
+                # Determine if this device should handle the command
+                if source != self.role.lower() and target != self.role.lower():
                     return  # Not relevant for this device
+
+                # Determine direction
+                reverse = target == self.role.lower()
 
                 # Map device connections to WLED controllers
                 wled_mapping = {
@@ -148,19 +182,28 @@ class TxtScenario:
                 }
 
                 # Find the appropriate WLED controller
-                connection_key = (source, target) if not reverse else (target, source)
+                connection_key = (source, target)
                 if connection_key in wled_mapping:
                     controller = wled_mapping[connection_key]
                     controller.turn_on(reverse)
+                    print(f"WLED: {source} -> {target} (reverse: {reverse})")
                     
         except ImportError:
             print("WLED controller not available")
         except Exception as e:
             print(f"Error handling WLED command '{wled_command}': {e}")
 
-    def _get_default_image(self) -> str:
-        """Return default image for the device role"""
+    def _get_default_display(self) -> Dict:
+        """Return default display content for the device role"""
         if self.role == "main":
-            return "images/000_init.png"
+            return {"type": "image", "content": "images/000_init.png"}
         else:
-            return f"images/devices/{self.role}.png"
+            return {"type": "image", "content": f"images/devices/{self.role}.png"}
+
+    def get_step_info(self, step: int) -> Optional[ScenarioStep]:
+        """Get step information for debugging/logging purposes"""
+        if step in self.steps:
+            device_steps = [s for s in self.steps[step] 
+                           if s.device.lower() == self.role.lower()]
+            return device_steps[0] if device_steps else None
+        return None

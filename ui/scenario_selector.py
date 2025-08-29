@@ -109,9 +109,9 @@ class ScenarioSelector:
         )
 
         scenarios = [
+            ("DNS and HTTPS (ORF) Level 1", "dns_https_level_1"),
             ("HTTP (ORF) Level 1", "http_level_1"),
             ("HTTP (ORF) Level 2", "http_level_2"),
-            # ("HTTP (ORF) Level 3", "http_level_3")
         ]
 
         for idx, (name, scenario_id) in enumerate(scenarios, start=1):

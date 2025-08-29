@@ -1,0 +1,73 @@
+# DNS and HTTPS (ORF) Level 1 Scenario
+# Format: step;device;image(opt);wled(opt);time_sec(default=5);desc(opt);
+
+# Initial state - all devices show default
+0;main;000_init.png;;;Scenario initialization;
+0;firewall;devices/firewall.png;;;Firewall ready;
+0;router;devices/router.png;;;Router ready;
+0;switch;devices/switch.png;;;Switch ready;
+0;dns;devices/dns.png;;;DNS server ready;
+0;server;devices/server.png;;;Web server ready;
+
+# Step 1: Client initiates HTTP request
+1;main;http/01_TypeURL@Client.png;;;Client types URL in browser;
+1;switch;http/HTTP_transmit.png;client>switch;3;Packet received from client;
+
+# Step 2: Switch forwards to router
+2;main;http/02_HTTPget@Client.png;;;HTTP GET request created;
+2;router;http/HTTP_transmit.png;switch>router;3;Packet forwarded from switch;
+
+# Step 3: Router forwards to firewall
+3;main;http/03_HTTPtransmit@Switch.png;;;Packet transmitted through switch;
+3;firewall;http/http_check.png;router>firewall;4;Firewall inspects HTTP traffic;
+
+# Step 4: Firewall allows traffic
+4;main;http/04_HTTPtransmit@Router.png;;;Packet transmitted through router;
+4;firewall;http/http_checked.png;;;HTTP traffic approved by firewall;
+
+# Step 5: Packet reaches server
+5;main;http/05_HTTPtransmit@Firewall.png;;;Packet transmitted through firewall;
+5;server;http/06_HTTPget@WebserverORF.png;firewall>server;3;HTTP GET request received;
+
+# Step 6: Server processes request
+6;main;http/06_HTTPget@Webserver.png;;;Server receives HTTP request;
+6;server;http/07_QueryPage@WebserverORF.png;;;Server queries for requested page;
+
+# Step 7: Server finds page
+7;main;http/07_QueryPage@WebserverORF.png;;;Server searches for page content;
+7;server;http/08_FoundPage@WebserverORF.png;;;Requested page found;
+
+# Step 8: Server prepares response
+8;main;http/08_FoundPage@WebserverORF.png;;;Page content located;
+8;server;http/09_DeliverHTML@WebserverORF.png;;;HTML content prepared for delivery;
+
+# Step 9: Server sends response back
+9;main;http/09_DeliverHTML@WebserverORF.png;;;Server delivers HTML content;
+9;firewall;http/website.png;server>firewall;3;Response packet received;
+
+# Step 10: Firewall forwards response
+10;main;http/10_HTTPok@WebserverORF.png;;;HTTP OK response sent;
+10;router;http/website.png;firewall>router;3;Response forwarded through firewall;
+
+# Step 11: Router processes response
+11;main;http/11_HTTPtransmit@Firewall.png;;;Response transmitted through firewall;
+11;router;http/Plaintext.png;router>switch;3;Plaintext HTTP response;
+
+# Step 12: Switch receives response
+12;main;http/12_HTTPtransmit@Router.png;;;Response transmitted through router;
+12;switch;http/website.png;switch>client;3;Response forwarded to client;
+
+# Step 13: Client receives HTML
+13;main;http/13_Plaintext@Router.png;;;Plaintext visible at router level;
+13;client;http/14_HTTPok@Client.png;;;HTTP OK response received;
+
+# Step 14: Client processes HTML
+14;main;http/14_HTTPtransmit@Switch.png;;;Response transmitted through switch;
+14;client;http/15_HTMLCode@Client.png;;;HTML code received and parsed;
+
+# Step 15: Website displayed
+15;main;http/15_HTTPok@Client.png;;;HTTP response delivered to client;
+15;client;http/16_Website@Client.png;;;ORF website displayed in browser;
+
+# Final step
+16;main;999_finish.png;;;Scenario completed successfully;

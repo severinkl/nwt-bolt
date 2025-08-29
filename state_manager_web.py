@@ -91,18 +91,18 @@ class StateManager:
 
 
     def load_scenario(self, scenario_name):
-        # Check if it's a txt file scenario first
+        """Load scenario from text file or fall back to Python module"""
         txt_file_path = f"scenarios/{scenario_name}.txt"
         if os.path.exists(txt_file_path):
             from scenarios.scenario_parser import TxtScenario
             return TxtScenario(self.role, txt_file_path)
         else:
-            # Fall back to Python module for backward compatibility
+            # Fall back to Python module for legacy scenarios
             try:
                 module = __import__(f"scenarios.{scenario_name}", fromlist=["Scenario"])
                 return module.Scenario(self.role)
             except ImportError:
-                print(f"Error: Could not load scenario '{scenario_name}' as txt or Python file")
+                print(f"Error: Could not load scenario '{scenario_name}'. Please ensure the scenario file exists as either {scenario_name}.txt or {scenario_name}.py")
                 return None
 
     def scale_image(self, image, width, height):
