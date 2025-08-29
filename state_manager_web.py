@@ -137,6 +137,8 @@ class StateManager:
 
         # Handle different content types
         if isinstance(content, dict):
+            if content["type"] == "empty":
+                return self.create_empty_image_base64()
             if content["type"] == "text":
                 return self.create_text_image_base64(content["content"])
             elif content["type"] == "image_with_text":
@@ -409,3 +411,19 @@ class StateManager:
                 return f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode('utf-8')}"
             except:
                 return ""
+
+    def create_empty_image_base64(self):
+        """Create a blank/empty base64 image"""
+        try:
+            # Create a blank white image
+            img_width, img_height = 1280, 720
+            img = Image.new('RGB', (img_width, img_height), color='white')
+            
+            # Convert to base64
+            buffered = BytesIO()
+            img.save(buffered, format="PNG")
+            return f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode('utf-8')}"
+            
+        except Exception as e:
+            print(f"[ERROR] Empty image creation failed: {e}")
+            return ""

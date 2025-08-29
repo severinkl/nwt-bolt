@@ -111,9 +111,21 @@ class TxtScenario:
                     "type": "text",
                     "content": desc_step.desc
                 }
+            else:
+                # No description found and no main image - show nothing
+                return {
+                    "type": "empty"
+                }
         
         if not device_steps:
-            return self._get_default_display()
+            # For non-main roles, show default display
+            if self.role.lower() != 'main':
+                return self._get_default_display()
+            else:
+                # For main role with no content, show nothing
+                return {
+                    "type": "empty"
+                }
 
         # Use the first matching step for this device
         scenario_step = device_steps[0]
