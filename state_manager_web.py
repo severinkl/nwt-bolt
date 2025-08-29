@@ -175,25 +175,83 @@ class StateManager:
             img = Image.new('RGB', (img_width, img_height), color='white')
             draw = ImageDraw.Draw(img)
             
-            # Try to use a nice font, fall back to default if not available
-            try:
-                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-            except:
-                try:
-                    font = ImageFont.truetype("arial.ttf", 48)
-                except:
-                    font = ImageFont.load_default()
-            
             # Text color (FHSTP blue)
             text_color = '#005097'
             
+            # Prepare text lines
+            original_lines = text_content.split('\n')
+            
+            # Try different font sizes to fit content
+            font_sizes = [48, 36, 28, 24, 20, 16]
+            font = None
+            wrapped_lines = []
+            
+            for font_size in font_sizes:
+                # Try to use a nice font, fall back to default if not available
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                except:
+                    try:
+                        font = ImageFont.truetype("arial.ttf", font_size)
+                    except:
+                        font = ImageFont.load_default()
+                
+                # Wrap text to fit width
+                wrapped_lines = []
+                max_width = img_width - 80  # Leave 40px margin on each side
+                
+                for line in original_lines:
+                    if not line.strip():
+                        wrapped_lines.append("")
+                        continue
+                        
+                    # Check if line fits
+                    bbox = draw.textbbox((0, 0), line, font=font)
+                    line_width = bbox[2] - bbox[0]
+                    
+                    if line_width <= max_width:
+                        wrapped_lines.append(line)
+                    else:
+                        # Wrap long lines
+                        words = line.split()
+                        current_line = ""
+                        
+                        for word in words:
+                            test_line = current_line + (" " if current_line else "") + word
+                            bbox = draw.textbbox((0, 0), test_line, font=font)
+                            test_width = bbox[2] - bbox[0]
+                            
+                            if test_width <= max_width:
+                                current_line = test_line
+                            else:
+                                if current_line:
+                                    wrapped_lines.append(current_line)
+                                current_line = word
+                        
+                        if current_line:
+                            wrapped_lines.append(current_line)
+                
+                # Check if all lines fit vertically
+                line_height = font_size + 10
+                total_height = len(wrapped_lines) * line_height
+                max_height = img_height - 80  # Leave 40px margin top and bottom
+                
+                if total_height <= max_height:
+                    break  # This font size works
+            
+            # If no font size worked, use the smallest and truncate
+            if total_height > max_height:
+                max_lines = int(max_height / line_height)
+                wrapped_lines = wrapped_lines[:max_lines]
+                if len(original_lines) > max_lines:
+                    wrapped_lines[-1] = wrapped_lines[-1][:50] + "..."
+            
             # Calculate text positioning for center alignment
-            lines = text_content.split('\n')
-            line_height = 50
-            total_height = len(lines) * line_height
+            line_height = (font.size if hasattr(font, 'size') else 24) + 10
+            total_height = len(wrapped_lines) * line_height
             start_y = (img_height - total_height) // 2
             
-            for i, line in enumerate(lines):
+            for i, line in enumerate(wrapped_lines):
                 if line.strip():  # Skip empty lines
                     # Get text bounding box for centering
                     bbox = draw.textbbox((0, 0), line, font=font)
