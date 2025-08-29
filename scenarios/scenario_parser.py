@@ -179,6 +179,8 @@ class TxtScenario:
                     ('switch', 'router'): WledController("192.168.50.21", 2),
                     ('router', 'firewall'): WledController("192.168.50.22", 2),
                     ('firewall', 'server'): WledController("192.168.50.22", 1),
+                    ('router', 'dns'): WledController("192.168.50.23", 1),
+                    ('dns', 'router'): WledController("192.168.50.23", 1),
                 }
 
                 # Find the appropriate WLED controller

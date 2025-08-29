@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 # WLED CONTROLLER Playlists
 # channel 1 foreward 7 reverse 9
 # channel 2 foreward 8 reverse 10
+# channel 3 foreward 11 reverse 12
 
 class WledController:
     def __init__(self, ip_address, channel=1):
@@ -21,6 +22,9 @@ class WledController:
         elif (channel == 2):
             self.preset_playlist_forward = 8
             self.preset_playlist_reverse = 10
+        elif (channel == 3):
+            self.preset_playlist_forward = 11
+            self.preset_playlist_reverse = 12
         else:
             # unsupported
             self.preset_playlist_forward = 0
