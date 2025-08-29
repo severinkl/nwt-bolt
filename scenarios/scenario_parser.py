@@ -100,6 +100,18 @@ class TxtScenario:
         device_steps = [s for s in self.steps[step] 
                        if s.device.lower() == self.role.lower() or s.device.lower() == 'all']
         
+        # Special handling for main role - show descriptions if no main image specified
+        if not device_steps and self.role.lower() == 'main':
+            # Look for any step with a description in this step number
+            steps_with_desc = [s for s in self.steps[step] if s.desc and s.desc.strip()]
+            if steps_with_desc:
+                # Use the first description found
+                desc_step = steps_with_desc[0]
+                return {
+                    "type": "text",
+                    "content": desc_step.desc
+                }
+        
         if not device_steps:
             return self._get_default_display()
 
