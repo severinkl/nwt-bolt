@@ -122,6 +122,23 @@ class TxtScenario:
         if scenario_step.wled:
             self._handle_wled_command(scenario_step.wled)
 
+        # Check if main role will show this step's description
+        # If so, don't show description on the original device
+        main_steps = [s for s in self.steps[step] if s.device.lower() == 'main']
+        if not main_steps and self.role.lower() != 'main':
+            # Main has no image for this step, so it will show our description
+            # We should not show the description on this device
+            steps_with_desc = [s for s in self.steps[step] if s.desc and s.desc.strip()]
+            if steps_with_desc and scenario_step.desc:
+                # Create a copy without description to avoid showing it twice
+                scenario_step = ScenarioStep(
+                    scenario_step.step,
+                    scenario_step.device,
+                    scenario_step.image,
+                    scenario_step.wled,
+                    scenario_step.time_sec,
+                    None  # Remove description
+                )
         # Determine what to return based on content
         return self._create_display_content(scenario_step)
 
