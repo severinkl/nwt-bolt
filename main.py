@@ -3,8 +3,11 @@ import sys
 import socket
 import threading
 
-from state_manager import StateManager
-from ui.scenario_selector import ScenarioSelector
+from ui.web_ui.selector import WebScenarioSelector
+from ui.web_ui.web_display import WebDeviceDisplay
+
+from state_manager_web import StateManager
+
 
 def main():
     allowed_roles = set(DEVICE_ROLE_MAP.values())
@@ -22,7 +25,7 @@ def main():
             sys.exit(1)
         print(f"[INFO] Starte automatisch mit Rolle '{role}' für Hostname '{hostname}'")
 
-    state_manager = StateManager(role)
+    state_manager = StateManager(role, display_mode="web")
 
     # Start listening for state updates in a separate thread
     listener_thread = threading.Thread(
@@ -33,10 +36,11 @@ def main():
 
     # Only show UI for main role
     if role == "main":
-        selector = ScenarioSelector(state_manager)
+        selector = WebScenarioSelector(state_manager)
         selector.run()
     else:
-        state_manager.run_display()
+        display = WebDeviceDisplay(state_manager)
+        display.run()
 
 if __name__ == "__main__":
     main()
