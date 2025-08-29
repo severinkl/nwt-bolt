@@ -39,8 +39,7 @@ def main():
         selector = WebScenarioSelector(state_manager)
         selector.run()
     else:
-        display = WebDeviceDisplay(state_manager)
-        display.run()
+        state_manager.run_display()
 
 if __name__ == "__main__":
     main()
