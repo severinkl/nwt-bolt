@@ -155,9 +155,3 @@ function updateDeviceStatuses() {
     console.error("Fehler bei get_all_device_statuses:", err);
   });
 }
-
-
-
-
-
-
