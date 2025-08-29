@@ -280,10 +280,87 @@ class StateManager:
             # Create canvas with extra space for text
             canvas_width = 1280
             canvas_height = 720
-            text_height = 150  # Space reserved for text
             
-            # Scale the original image to fit in the remaining space
-            available_height = canvas_height - text_height
+            # Calculate required text height dynamically
+            lines = text_content.split('\n')
+            
+            # Try different font sizes and calculate required space
+            font_sizes = [32, 28, 24, 20, 18, 16]
+            font = None
+            wrapped_lines = []
+            required_text_height = 100  # Minimum space for text
+            
+            for font_size in font_sizes:
+                # Try to use a nice font, fall back to default if not available
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                except:
+                    try:
+                        font = ImageFont.truetype("arial.ttf", font_size)
+                    except:
+                        font = ImageFont.load_default()
+                
+                # Create temporary draw to measure text
+                temp_img = Image.new('RGB', (canvas_width, canvas_height), color='white')
+                temp_draw = ImageDraw.Draw(temp_img)
+                
+                # Wrap text to fit width
+                wrapped_lines = []
+                max_width = canvas_width - 80  # Leave 40px margin on each side
+                
+                for line in lines:
+                    if not line.strip():
+                        wrapped_lines.append("")
+                        continue
+                        
+                    # Check if line fits
+                    bbox = temp_draw.textbbox((0, 0), line, font=font)
+                    line_width = bbox[2] - bbox[0]
+                    
+                    if line_width <= max_width:
+                        wrapped_lines.append(line)
+                    else:
+                        # Wrap long lines
+                        words = line.split()
+                        current_line = ""
+                        
+                        for word in words:
+                            test_line = current_line + (" " if current_line else "") + word
+                            bbox = temp_draw.textbbox((0, 0), test_line, font=font)
+                            test_width = bbox[2] - bbox[0]
+                            
+                            if test_width <= max_width:
+                                current_line = test_line
+                            else:
+                                if current_line:
+                                    wrapped_lines.append(current_line)
+                                current_line = word
+                        
+                        if current_line:
+                            wrapped_lines.append(current_line)
+                
+                # Calculate required height for this font size
+                line_height = font_size + 8
+                total_text_height = len(wrapped_lines) * line_height + 40  # Add padding
+                
+                # Check if we have enough space for both text and image
+                available_image_height = canvas_height - total_text_height - 20  # Extra margin
+                
+                if available_image_height > 200:  # Minimum reasonable image height
+                    required_text_height = total_text_height
+                    break
+            
+            # If no font size worked well, use smallest and adjust
+            if available_image_height <= 200:
+                required_text_height = canvas_height // 3  # Use 1/3 for text, 2/3 for image
+                font_size = 16
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                except:
+                    font = ImageFont.load_default()
+            
+            # Scale the original image to fit in the remaining space  
+            available_height = canvas_height - required_text_height
             img_scale_ratio = min(canvas_width / original_img.width, available_height / original_img.height)
             scaled_img_width = int(original_img.width * img_scale_ratio)
             scaled_img_height = int(original_img.height * img_scale_ratio)
@@ -293,25 +370,15 @@ class StateManager:
             canvas = Image.new('RGB', (canvas_width, canvas_height), color='white')
             draw = ImageDraw.Draw(canvas)
             
-            # Add text at the top
-            try:
-                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-            except:
-                try:
-                    font = ImageFont.truetype("arial.ttf", 36)
-                except:
-                    font = ImageFont.load_default()
-            
             # Text color (FHSTP blue)
             text_color = '#005097'
             
             # Calculate text positioning for center alignment
-            lines = text_content.split('\n')
-            line_height = 40
-            total_text_height = len(lines) * line_height
-            start_y = (text_height - total_text_height) // 2
+            line_height = font_size + 8
+            total_text_height = len(wrapped_lines) * line_height
+            start_y = (required_text_height - total_text_height) // 2
             
-            for i, line in enumerate(lines):
+            for i, line in enumerate(wrapped_lines):
                 if line.strip():  # Skip empty lines
                     # Get text bounding box for centering
                     bbox = draw.textbbox((0, 0), line, font=font)
@@ -323,7 +390,7 @@ class StateManager:
             
             # Add the scaled image below the text
             img_x = (canvas_width - scaled_img_width) // 2
-            img_y = text_height + (available_height - scaled_img_height) // 2
+            img_y = required_text_height + (available_height - scaled_img_height) // 2
             canvas.paste(scaled_img, (img_x, img_y))
             
             # Convert to base64
