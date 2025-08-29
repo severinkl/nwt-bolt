@@ -34,6 +34,9 @@ class TxtScenario:
         with open(self.txt_file_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
 
+        # First pass: collect all valid steps
+        valid_steps = set()
+
         for line_num, line in enumerate(lines, 1):
             line = line.strip()
             
@@ -80,30 +83,50 @@ class TxtScenario:
                     self.steps[step] = []
                 self.steps[step].append(scenario_step)
 
-                # Update maximum steps
-                self.maximum_steps = max(self.maximum_steps, step)
+                # Mark this step as valid
+                valid_steps.add(step)
 
             except (ValueError, IndexError) as e:
                 print(f"Error parsing line {line_num} in {self.txt_file_path}: {line} - {e}")
 
+        # Create ordered list of valid steps for navigation
+        self.valid_steps = sorted(valid_steps)
+        self.maximum_steps = len(self.valid_steps)
         # Ensure we have at least one step
         if self.maximum_steps == 0:
             self.maximum_steps = 1
+            self.valid_steps = [0]
+
+    def get_actual_step_number(self, navigation_step: int) -> int:
+        """Convert navigation step (0-based index) to actual step number"""
+        if navigation_step < 0 or navigation_step >= len(self.valid_steps):
+            return 0
+        return self.valid_steps[navigation_step]
+
+    def get_navigation_step(self, actual_step: int) -> int:
+        """Convert actual step number to navigation step (0-based index)"""
+        try:
+            return self.valid_steps.index(actual_step)
+        except ValueError:
+            return 0
 
     def execute_step(self, step: int) -> Optional[Dict]:
         """Execute step based on role and return display content"""
+        # Convert navigation step to actual step number
+        actual_step = self.get_actual_step_number(step)
+        
         # Handle step 0 or steps not in our scenario
-        if step not in self.steps:
+        if actual_step not in self.steps:
             return self._get_default_display()
 
         # Find steps for this device/role
-        device_steps = [s for s in self.steps[step] 
+        device_steps = [s for s in self.steps[actual_step] 
                        if s.device.lower() == self.role.lower() or s.device.lower() == 'all']
         
         # Special handling for main role - show descriptions if no main image specified
         if not device_steps and self.role.lower() == 'main':
             # Look for any step with a description in this step number
-            steps_with_desc = [s for s in self.steps[step] if s.desc and s.desc.strip()]
+            steps_with_desc = [s for s in self.steps[actual_step] if s.desc and s.desc.strip()]
             if steps_with_desc:
                 # Use the first description found
                 desc_step = steps_with_desc[0]
@@ -137,11 +160,11 @@ class TxtScenario:
         # Check if main role will show this step's description
         # If so, don't show description on the original device
         if self.role.lower() != 'main':
-            main_steps = [s for s in self.steps[step] if s.device.lower() == 'main']
+            main_steps = [s for s in self.steps[actual_step] if s.device.lower() == 'main']
             if not main_steps:
                 # Main has no image for this step, so it will show our description
                 # We should not show the description on this device
-                steps_with_desc = [s for s in self.steps[step] if s.desc and s.desc.strip()]
+                steps_with_desc = [s for s in self.steps[actual_step] if s.desc and s.desc.strip()]
                 if steps_with_desc and scenario_step.desc:
                     # Create a copy without description to avoid showing it twice
                     scenario_step = ScenarioStep(
@@ -247,8 +270,9 @@ class TxtScenario:
 
     def get_step_info(self, step: int) -> Optional[ScenarioStep]:
         """Get step information for debugging/logging purposes"""
-        if step in self.steps:
-            device_steps = [s for s in self.steps[step] 
+        actual_step = self.get_actual_step_number(step)
+        if actual_step in self.steps:
+            device_steps = [s for s in self.steps[actual_step] 
                            if s.device.lower() == self.role.lower()]
             return device_steps[0] if device_steps else None
         return None
