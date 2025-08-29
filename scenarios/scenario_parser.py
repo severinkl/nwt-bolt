@@ -89,8 +89,27 @@ class TxtScenario:
             except (ValueError, IndexError) as e:
                 print(f"Error parsing line {line_num} in {self.txt_file_path}: {line} - {e}")
 
-        # Create ordered list of valid steps for navigation
-        self.valid_steps = sorted(valid_steps)
+        # Filter out steps that have no meaningful content for any device
+        meaningful_steps = set()
+        for step_num in valid_steps:
+            step_actions = self.steps[step_num]
+            has_content = False
+            
+            for action in step_actions:
+                # Check if this action has any meaningful content
+                has_image = action.image and action.image.strip() and action.image.lower() != 'null'
+                has_wled = action.wled and action.wled.strip() and action.wled.lower() != 'null'
+                has_desc = action.desc and action.desc.strip()
+                
+                if has_image or has_wled or has_desc:
+                    has_content = True
+                    break
+            
+            if has_content:
+                meaningful_steps.add(step_num)
+        
+        # Create ordered list of meaningful steps for navigation
+        self.valid_steps = sorted(meaningful_steps)
         self.maximum_steps = len(self.valid_steps)
         # Ensure we have at least one step
         if self.maximum_steps == 0:
