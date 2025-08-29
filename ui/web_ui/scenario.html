@@ -1,0 +1,28 @@
+<!-- ui/web_ui/scenario.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Szenario</title>
+  <script defer src="scenario.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="top-bar">
+    <button onclick="exitScenario()">← Zurück zur Auswahl</button>
+    <h1>Szenario</h1>
+  </div>
+
+  <div id="scenarioImage-container">
+    <img id="scenarioImage" src="" />
+  </div>
+
+
+  <pre id="status"></pre>
+  <div id="controls">
+    <button onclick="previousStep()">← Zurück</button>
+    <button id="auto-restart-btn" onclick="handleAutoButtonClick()">Start</button>
+    <button onclick="nextStep()">Weiter →</button>
+  </div>
+</body>
+</html>

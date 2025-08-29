@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Packet Visualizer</title>
+  <script defer src="script.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="top-bar">
+    <h1>Network Packet Simulator</h1>
+    <img id="logo" src="images/fhstp_logo.svg" />
+  </div>
+
+
+      <div id="device-status">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Status</th><th>Rolle</th></tr>
+          </thead>
+          <tbody id="device-status-body">
+            <!-- Inhalte werden dynamisch geladen -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pin-overlay" style="display:none;">
+      <div id="pin-box">
+        <h2>Admin-PIN</h2>
+        <input type="password" id="pin-input" disabled />
+        <div id="pin-error" style="color:red; display:none;">Falsche PIN</div>
+        <div id="numpad">
+          <!-- Buttons generieren wir per JS -->
+        </div>
+        <button onclick="closePinOverlay()">Abbrechen</button>
+      </div>
+      </div>
+
+
+      <!-- Szenario-Auswahl -->
+      <div id="scenario-selection">
+        <button onclick="startScenario('http_level_1')">Start HTTP Level 1</button>
+        <!-- ggf. weitere Szenarien -->
+      </div>
+
+      <!-- Szenario-Ansicht -->
+      <div id="scenario-display" style="display: none;">
+        <img id="scenarioImage" src="" />
+        <div id="controls">
+          <button onclick="exitScenario()">← Zurück zur Auswahl</button>
+          <button onclick="previousStep()">← Zurück</button>
+          <button id="auto-restart-btn" onclick="handleAutoButtonClick()">Start Auto</button>
+          <button onclick="nextStep()">Weiter →</button>
+        </div>
+        <pre id="status"></pre>
+      </div>
+</body>
+
+</html>

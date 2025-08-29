@@ -1,0 +1,133 @@
+:root {
+  --accent: #3ea6ff;
+  --bg-dark: #121212;
+  --bg-light: #1f1f1f;
+  --border: #333;
+  --text-light: #f0f0f0;
+  --text-dim: #aaa;
+  --error: #ff4c4c;
+  --success: #32cd32;
+}
+
+/* Grundlayout */
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-light);
+}
+
+/* Top Bar */
+#top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border);
+}
+
+#top-bar h1 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--accent);
+}
+
+#top-bar button {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Admin Panel Table */
+#admin-panel {
+  padding: 20px;
+  overflow-x: auto;
+}
+
+#admin-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+}
+
+#admin-panel th,
+#admin-panel td {
+  padding: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+  font-size: 14px;
+}
+
+#admin-panel th {
+  background: var(--accent);
+  color: #fff;
+}
+
+#admin-panel td {
+  color: var(--text-light);
+}
+
+/* Tabellenzeilen Hover */
+#admin-panel tr:hover td {
+  background: #2a2a2a;
+}
+
+/* Buttons */
+button {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #66c2ff;
+}
+
+button:disabled {
+  background: #444;
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+/* Select Dropdown */
+select {
+  background-color: var(--accent);
+  color: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select:disabled {
+  background-color: #444;
+  color: #aaa;
+  border-color: #555;
+  opacity: 0.6;
+}
+
+select:not(:disabled):hover {
+  border-color: #66c2ff;
+}
+
+/* Status Farben (optional via JS ergänzen) */
+.status-ok {
+  color: var(--success);
+}
+.status-fail {
+  color: var(--error);
+}
+.status-unknown {
+  color: var(--text-dim);
+}
