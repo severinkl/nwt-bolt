@@ -181,10 +181,15 @@ class WebScenarioSelector:
 
     def run(self):
         api = self.Api(self.state_manager)
-        webview.create_window(
-            "Packet Visualizer",
-            url="ui/web_ui/index.html",
-            js_api=api,
-            fullscreen=True
-        )
-        webview.start(debug=True)
+        try:
+            webview.create_window(
+                "Packet Visualizer",
+                url="ui/web_ui/index.html",
+                js_api=api,
+                fullscreen=True
+            )
+            webview.start(debug=False)  # Disable debug to reduce Qt issues
+        except Exception as e:
+            print(f"[ERROR] Webview failed to start: {e}")
+            print("Try installing GTK webview: sudo apt-get install python3-gi gir1.2-webkit2-4.0")
+            sys.exit(1)

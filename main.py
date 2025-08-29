@@ -2,6 +2,7 @@ from config.device_roles import DEVICE_ROLE_MAP
 import sys
 import socket
 import threading
+import os
 
 from ui.web_ui.selector import WebScenarioSelector
 from ui.web_ui.web_display import WebDeviceDisplay
@@ -10,6 +11,9 @@ from state_manager_web import StateManager
 
 
 def main():
+    # Force webview to use a specific backend to avoid Qt issues
+    os.environ['PYWEBVIEW_GUI'] = 'gtk'
+    
     allowed_roles = set(DEVICE_ROLE_MAP.values())
 
     if len(sys.argv) == 2:
