@@ -39,6 +39,10 @@ function handleLogoClick() {
     window.pywebview.api.logo_clicked().then(triggered => {
       if (triggered) {
         openPinOverlay();
+      }
+    }
+    )
+  }
   document.getElementById("pin-error").style.display = "none";
   
   // Nur Inhalte verstecken, nicht den body
