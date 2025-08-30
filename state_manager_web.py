@@ -57,6 +57,9 @@ class StateManager:
                 if data.get("command") == "show_role_image":
                     self.state = {"scenario": "", "step": 0}
                     self.current_handler = None
+                    # Clear current display content so device image is shown
+                    if hasattr(self, 'current_display_content'):
+                        delattr(self, 'current_display_content')
                     self.trigger_webview_update()
                 else:
                     self.state = data["state"]
@@ -77,7 +80,7 @@ class StateManager:
         scenario = self.state["scenario"]
         step = self.state["step"]
 
-        if scenario:
+        if scenario:  # Scenario is running
             if not self.current_handler or scenario != self.state.get("last_scenario"):
                 self.current_handler = self.load_scenario(scenario)
                 self.state["last_scenario"] = scenario
@@ -86,6 +89,11 @@ class StateManager:
             
             # Store the result for web display
             self.current_display_content = result
+        else:
+            # No scenario running - clear display content so device image is shown
+            if hasattr(self, 'current_display_content'):
+                delattr(self, 'current_display_content')
+            self.current_handler = None
 
         self.trigger_webview_update()
 
@@ -133,7 +141,7 @@ class StateManager:
             if self.state["scenario"] and self.current_handler:
                 content = self.current_handler.execute_step(self.state["step"])
             else:
-                # Show device image only when no scenario is running (menu state)
+                # Show device image when no scenario is running (menu state)
                 content = {"type": "image", "content": f"images/devices/{self.role}.png"}
 
         # Handle different content types
