@@ -39,16 +39,6 @@ function handleLogoClick() {
     window.pywebview.api.logo_clicked().then(triggered => {
       if (triggered) {
         openPinOverlay();
-      }
-    });
-  }
-}
-
-let enteredPin = "";
-
-function openPinOverlay() {
-  enteredPin = "";
-  document.getElementById("pin-input").value = "";
   document.getElementById("pin-error").style.display = "none";
   
   // Nur Inhalte verstecken, nicht den body
@@ -78,13 +68,6 @@ function checkPin() {
       enteredPin = "";
       document.getElementById("pin-input").value = "";
     }
-  }).catch(error => {
-    // Show environment variable error message
-    const errorDiv = document.getElementById("pin-error");
-    errorDiv.textContent = "Admin PIN not configured. Set ADMIN_PIN environment variable.";
-    errorDiv.style.display = "block";
-    enteredPin = "";
-    document.getElementById("pin-input").value = "";
   });
 }
 

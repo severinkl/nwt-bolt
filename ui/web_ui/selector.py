@@ -58,7 +58,8 @@ class WebScenarioSelector:
         def ADMIN_PIN(self):
             pin = os.getenv("ADMIN_PIN")
             if not pin:
-                raise ValueError("ADMIN_PIN environment variable not set. Please set ADMIN_PIN=your_pin_here")
+                print("[WARNING] ADMIN_PIN environment variable not set. Using default PIN '1234'. For security, please set ADMIN_PIN=your_secure_pin")
+                return "1234"
             return pin
         
         def get_device_list(self):
