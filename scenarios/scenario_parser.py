@@ -282,10 +282,8 @@ class TxtScenario:
 
     def _get_default_display(self) -> Dict:
         """Return default display content for the device role"""
-        if self.role == "main":
-            return {"type": "image", "content": "images/000_init.png"}
-        else:
-            return {"type": "image", "content": f"images/devices/{self.role}.png"}
+        # During scenarios, show black screen for devices with no content
+        return {"type": "empty"}
 
     def get_step_info(self, step: int) -> Optional[ScenarioStep]:
         """Get step information for debugging/logging purposes"""

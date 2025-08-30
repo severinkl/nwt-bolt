@@ -133,6 +133,7 @@ class StateManager:
             if self.state["scenario"] and self.current_handler:
                 content = self.current_handler.execute_step(self.state["step"])
             else:
+                # Show device image only when no scenario is running (menu state)
                 content = {"type": "image", "content": f"images/devices/{self.role}.png"}
 
         # Handle different content types
@@ -415,9 +416,9 @@ class StateManager:
     def create_empty_image_base64(self):
         """Create a blank/empty base64 image"""
         try:
-            # Create a blank white image
+            # Create a blank black image
             img_width, img_height = 1280, 720
-            img = Image.new('RGB', (img_width, img_height), color='white')
+            img = Image.new('RGB', (img_width, img_height), color='black')
             
             # Convert to base64
             buffered = BytesIO()
