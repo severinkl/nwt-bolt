@@ -38,8 +38,16 @@ function handleLogoClick() {
   if (window.pywebview && window.pywebview.api) {
     window.pywebview.api.logo_clicked().then(triggered => {
       if (triggered) {
-        openPinOverlay();
+        // Check if admin PIN is configured before opening overlay
+        window.pywebview.api.check_pin("").then(() => {
+          openPinOverlay();
+        }).catch(error => {
+          // Show error in main overview instead of opening PIN overlay
+          alert("Admin PIN not configured. Please set the ADMIN_PIN environment variable and restart the application.");
+        });
       }
+    }).catch(error => {
+      console.error("Error checking logo click:", error);
     });
   }
 }
@@ -79,15 +87,18 @@ function checkPin() {
       document.getElementById("pin-input").value = "";
     }
   }).catch(error => {
-    // Show environment variable error message
-    const errorDiv = document.getElementById("pin-error");
-    errorDiv.textContent = "Admin PIN not configured. Set ADMIN_PIN environment variable.";
-    errorDiv.style.display = "block";
-    enteredPin = "";
-    document.getElementById("pin-input").value = "";
+    showAdminPinError();
   });
 }
 
+function showAdminPinError() {
+  // Show environment variable error message
+  const errorDiv = document.getElementById("pin-error");
+  errorDiv.textContent = "Admin PIN not configured. Set ADMIN_PIN environment variable.";
+  errorDiv.style.display = "block";
+  enteredPin = "";
+  document.getElementById("pin-input").value = "";
+}
 
 function createNumpad() {
   const keys = ['1','2','3','4','5','6','7','8','9','←','0','OK'];
