@@ -78,6 +78,13 @@ function checkPin() {
       enteredPin = "";
       document.getElementById("pin-input").value = "";
     }
+  }).catch(error => {
+    // Show environment variable error message
+    const errorDiv = document.getElementById("pin-error");
+    errorDiv.textContent = "Admin PIN not configured. Set ADMIN_PIN environment variable.";
+    errorDiv.style.display = "block";
+    enteredPin = "";
+    document.getElementById("pin-input").value = "";
   });
 }
 

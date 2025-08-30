@@ -1,5 +1,6 @@
 import webview
 from config import AUTO_PROGRESS_TIMEOUT
+import os
 
 class WebScenarioSelector:
     
@@ -7,7 +8,6 @@ class WebScenarioSelector:
         self.state_manager = state_manager
 
     class Api:
-        ADMIN_PIN = "1235"
         PROJECT_PATH = "/opt/sepnwt/nwt-packet-visualization"
 
         def __init__(self, state_manager):
@@ -53,6 +53,13 @@ class WebScenarioSelector:
         
         def check_pin(self, pin):
             return pin == self.ADMIN_PIN
+        
+        @property
+        def ADMIN_PIN(self):
+            pin = os.getenv("ADMIN_PIN")
+            if not pin:
+                raise ValueError("ADMIN_PIN environment variable not set. Please set ADMIN_PIN=your_pin_here")
+            return pin
         
         def get_device_list(self):
             from config.rpi_status_config import RPI_HOSTS

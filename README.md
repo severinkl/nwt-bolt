@@ -33,11 +33,21 @@ To use production settings, set the environment variable:
 export ENV=production
 ```
 
+### Admin Access
+
+To enable admin panel access, set the admin PIN environment variable:
+```bash
+export ADMIN_PIN=your_secure_pin_here
+```
+
+Without this environment variable, the admin panel will not be accessible and will show an error message when attempting to access it.
+
 Key configuration options:
 - `REDIS_HOST`: Redis server host (default: localhost)
 - `REDIS_PORT`: Redis server port (default: 6379)
 - `REDIS_CHANNEL`: Redis pub/sub channel name (default: scenario_updates)
 - `AUTO_PROGRESS_TIMEOUT`: Time in milliseconds between auto-progress steps (default: 5000)
+- `ADMIN_PIN`: PIN code for accessing the admin panel (required for admin access)
 
 ## Running Components
 
