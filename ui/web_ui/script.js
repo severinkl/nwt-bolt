@@ -38,18 +38,8 @@ function handleLogoClick() {
   if (window.pywebview && window.pywebview.api) {
     window.pywebview.api.logo_clicked().then(triggered => {
       if (triggered) {
-        // Try to access the ADMIN_PIN property to check if it's configured
-        try {
-          // This will throw an error if ADMIN_PIN is not set
-          window.pywebview.api.ADMIN_PIN;
-          openPinOverlay();
-        } catch (error) {
-          // Show error in main overview if ADMIN_PIN is not configured
-          alert("Admin PIN not configured. Please set the ADMIN_PIN environment variable and restart the application.");
-        }
+        openPinOverlay();
       }
-    }).catch(error => {
-      console.error("Error checking logo click:", error);
     });
   }
 }
