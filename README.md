@@ -35,12 +35,12 @@ export ENV=production
 
 ### Admin Access
 
-To enable admin panel access, set the admin PIN environment variable:
+The admin panel is protected by a PIN. You can set a custom PIN using an environment variable:
 ```bash
 export ADMIN_PIN=your_secure_pin_here
 ```
 
-Without this environment variable, the admin panel will not be accessible and will show an error message when attempting to access it.
+If no ADMIN_PIN is set, the system will use the default PIN "1234" and show a security warning in the console. For production use, always set a custom PIN.
 
 ### Admin Access
 
@@ -156,4 +156,3 @@ redis-cli
 ### Testing
 
 ...
-
